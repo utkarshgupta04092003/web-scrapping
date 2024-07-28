@@ -4,6 +4,12 @@ const puppeteer = require("puppeteer");
 const app = express();
 const port = 3000;
 
+app.get("/", async(req, res)=>{
+  return res
+      .status(200)
+      .send({ message: "API is working, You are doing something wrong you fool", success: true });
+  
+})
 app.get("/scrap-data", async (req, res) => {
   const {
     query,
