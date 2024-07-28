@@ -4,12 +4,14 @@ const puppeteer = require("puppeteer");
 const app = express();
 const port = 3000;
 
-app.get("/", async(req, res)=>{
+app.get("/", async (req, res) => {
   return res
-      .status(200)
-      .send({ message: "API is working, You are doing something wrong you fool", success: true });
-  
-})
+    .status(200)
+    .send({
+      message: "API is working, You are doing something wrong you fool",
+      success: true,
+    });
+});
 app.get("/scrap-data", async (req, res) => {
   const {
     query,
@@ -33,7 +35,11 @@ app.get("/scrap-data", async (req, res) => {
     )}&start=${(offset - 1) * num}&hl=${language}&gl=${location}&num=${num}`;
     console.log("url", url);
 
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: "/usr/bin/google-chrome-stable",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle2" });
     await page.waitForSelector("a h3");
@@ -53,13 +59,11 @@ app.get("/scrap-data", async (req, res) => {
     const uniqueResults = Array.from(allResults).map((item) =>
       JSON.parse(item)
     );
-    return res
-      .status(200)
-      .send({
-        total: uniqueResults.length,
-        results: uniqueResults,
-        success: true,
-      });
+    return res.status(200).send({
+      total: uniqueResults.length,
+      results: uniqueResults,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     return res
