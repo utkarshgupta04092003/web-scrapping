@@ -1,6 +1,8 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
 const { v4: uuidv4 } = require("uuid");
+const { extractData } = require("./utils/scrapeData");
+const scrapeData = require("./utils/scrapeData");
 const app = express();
 const port = 3000;
 
@@ -24,9 +26,14 @@ app.get("/scrap-data", async (req, res) => {
       .status(400)
       .send({ error: "Query parameter is required", success: false });
   }
+  if(num > 15){
+    return res
+    .status(400)
+    .send({ error: "Number is too large, it can cause failure of this Call", success: false });
+  }
 
   let allResults = new Set();
-
+  const startTime = new Date();
   try {
     const url = `https://www.google.com/search?q=${encodeURIComponent(
       query
@@ -49,19 +56,18 @@ app.get("/scrap-data", async (req, res) => {
         if (title && href) return { href, title };
       });
     });
-
-    results.forEach((result) => {
-      if (result) {
-        allResults.add({ ...result, _id: uuidv4() });
-      }
-    });
     await browser.close();
 
-    const uniqueResults = Array.from(allResults);
+    const detailedDataPromises = results.map(result => scrapeData(result.href));
+    const allDetailedData = await Promise.all(detailedDataPromises);
+    // Flatten the array of results
+    const uniqueResults = allDetailedData.flat();
+
     return res.status(200).send({
       total: uniqueResults.length,
       results: uniqueResults,
       success: true,
+      time: new Date()-startTime
     });
   } catch (error) {
     console.error(error);
