@@ -1,6 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
-
+const { v4: uuidv4 } = require("uuid");
 const app = express();
 const port = 3000;
 
@@ -35,7 +35,6 @@ app.get("/scrap-data", async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/google-chrome-stable", // Path to the installed Chrome binary
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
     const page = await browser.newPage();
@@ -51,12 +50,14 @@ app.get("/scrap-data", async (req, res) => {
       });
     });
 
-    results.forEach((result) => allResults.add(JSON.stringify(result)));
+    results.forEach((result) => {
+      if (result) {
+        allResults.add({ ...result, _id: uuidv4() });
+      }
+    });
     await browser.close();
 
-    const uniqueResults = Array.from(allResults).map((item) =>
-      JSON.parse(item)
-    );
+    const uniqueResults = Array.from(allResults);
     return res.status(200).send({
       total: uniqueResults.length,
       results: uniqueResults,
