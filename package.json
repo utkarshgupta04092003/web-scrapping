@@ -4,5 +4,8 @@
     "cheerio": "^1.0.0-rc.12",
     "express": "^4.19.2",
     "puppeteer": "^22.14.0"
+  },
+  "scripts": {
+    "postinstall": "apt-get update && apt-get install -y wget && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && apt-get install -y ./google-chrome-stable_current_amd64.deb"
   }
 }
